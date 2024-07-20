@@ -15,14 +15,12 @@ def download_nltk_data():
     nltk.download('stopwords')
     nltk.download('wordnet')
 
-# Predefined list of skills
 skills_list = [
     'Python', 'R', 'SQL', 'Java', 'C++', 'Tableau', 'Power BI', 'Excel',
     'Machine Learning', 'Deep Learning', 'NLP', 'Pandas', 'NumPy', 'SciPy',
     'TensorFlow', 'Keras', 'PyTorch', 'AWS', 'Azure', 'Git', 'Docker', 'Kubernetes'
 ]
 
-# Preprocessing function with tokenization and lemmatization
 def preprocess_text(text):
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'\r\n', ' ', text)
@@ -32,7 +30,6 @@ def preprocess_text(text):
     tokens = [lemmatizer.lemmatize(token) for token in tokens if token not in stopwords.words('english')]
     return ' '.join(tokens)
 
-# Apply preprocessing to the 'Resume' column in parallel
 def preprocess_resumes(resumes):
     with mp.Pool(mp.cpu_count()) as pool:
         return pool.map(preprocess_text, resumes)
@@ -44,7 +41,6 @@ def extract_skills(text):
             skills_found.append(skill)
     return skills_found
 
-# Apply skill extraction to the cleaned resumes in parallel
 def extract_skills_parallel(resumes):
     with mp.Pool(mp.cpu_count()) as pool:
         return pool.map(extract_skills, resumes)
@@ -69,10 +65,8 @@ def search_resumes(ix, skills):
     return result_ids
 
 if __name__ == '__main__':
-    # Download NLTK data
     download_nltk_data()
 
-    # Load the dataset
     file_path = r'F:\Data\UpdatedResumeDataSet.csv'
     print("Loading dataset...")
     df = pd.read_csv(file_path)
@@ -86,16 +80,13 @@ if __name__ == '__main__':
     df['Skills'] = extract_skills_parallel(df['Cleaned_Resume'])
     print("Skill extraction complete.")
 
-    # Define the schema
     schema = Schema(id=TEXT(stored=True), category=TEXT(stored=True), resume=TEXT(stored=True), skills=KEYWORD(stored=True))
 
-    # Create an index directory
     index_dir = "indexdir"
     if not os.path.exists(index_dir):
         os.mkdir(index_dir)
 
     print("Creating index...")
-    # Create an index
     ix = index.create_in(index_dir, schema)
 
     documents = [
@@ -111,7 +102,6 @@ if __name__ == '__main__':
     batch_write(ix, documents)
     print("Index creation complete.")
 
-    # Interactive search
     while True:
         query = input("Enter the skills to search for (comma-separated, or type 'exit' to quit): ")
         if query.lower() == 'exit':
